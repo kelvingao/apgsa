@@ -1,11 +1,16 @@
 import setuptools
+import os
+
+__version__ = None
+with open(os.path.join(os.path.dirname(__file__), 'apgsa', 'version.py')) as f:
+    exec(f.read())
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="apgsa",
-    version="0.0.1",
+    version=__version__,
     author="Kelvin Gao",
     author_email="89156201@qq.com",
     description="A wrapper around asyncpg for use with sqlalchemy core",
