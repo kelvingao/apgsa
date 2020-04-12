@@ -20,8 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .version import __version__, __version_info__
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
-from .connection import connect
+metadata = MetaData()
 
-__all__ = ('connect')
+users = Table('users', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('name', String(50)),
+    Column('fullname', String(50)),
+)
+
+addresses = Table('addresses', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('user_id', None, ForeignKey('users.id')),
+    Column('email_address', String(50), nullable=False)
+)

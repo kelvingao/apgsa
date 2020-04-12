@@ -20,8 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .version import __version__, __version_info__
+import pytest
+import apgsa
 
-from .connection import connect
+from .model import users
 
-__all__ = ('connect')
+
+@pytest.fixture
+async def apgsa_conn():
+    """
+    Create an apgsa connection for each test case.
+
+    """
+    conn = await apgsa.connect(user='test_user', password='test_pass',
+                                database='test_db', host='127.0.0.1')
+
+    yield conn
+    await conn.close()
+
+
+@pytest.fixture
+async def conn(apgsa_conn):
+    yield apgsa_conn
+
+    # teardown table users
+    await apgsa_conn.execute(users.delete())
+
+
+@pytest.mark.asyncio
+async def test_executing(conn):
+    ins = users.insert().values(name='jack', fullname='Jack Jones')
+
+    # Test a sample of the SQL this construct produces
+    status = await conn.execute(ins)
+    assert status == 'INSERT 0 1'
