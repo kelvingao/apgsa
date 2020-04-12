@@ -25,32 +25,14 @@ import apgsa
 
 from .model import users
 
-
-@pytest.fixture
-async def apgsa_conn():
-    """
-    Create an apgsa connection for each test case.
-
-    """
-    conn = await apgsa.connect(user='test_user', password='test_pass',
-                                database='test_db', host='127.0.0.1')
-
-    yield conn
-    await conn.close()
-
-
-@pytest.fixture
-async def conn(apgsa_conn):
-    yield apgsa_conn
-
-    # teardown table users
-    await apgsa_conn.execute(users.delete())
-
-
 @pytest.mark.asyncio
 async def test_executing(conn):
-    ins = users.insert().values(name='jack', fullname='Jack Jones')
+    """
+    INSERT a single row.
 
-    # Test a sample of the SQL this construct produces
+    """
+    ins = users.insert().values(name='kelvin', fullname='Kelvin Goh')
+
+    # test a sample of the SQL postgres dialect construct produces
     status = await conn.execute(ins)
     assert status == 'INSERT 0 1'

@@ -23,16 +23,19 @@
 import pytest
 from .model import users
 
-def test_insert_expression():
+def test_sa_insert_expression():
+    """
+    Test SQL statements SQLAlchemy produced.
 
-    # Test a sample of the SQL SA construct produces
+    """
+    # test a sample of the SQL SA construct produces
     ins = users.insert()
     query = str(ins)
     assert query == 'INSERT INTO users (id, name, fullname) VALUES (:id, :name, :fullname)'
 
-    # This can be limited by using the values() method, which establishes the VALUES clause of the INSERT explicitly
+    # this can be limited by using the values() method, which establishes the VALUES clause of the INSERT explicitly
     ins = users.insert().values(name='jack', fullname='Jack Jones')
     assert str(ins) == 'INSERT INTO users (name, fullname) VALUES (:name, :fullname)'
 
-    # Compiled form of the statement
+    # compiled form of the statement
     assert ins.compile().params == {'fullname': 'Jack Jones', 'name': 'jack'}

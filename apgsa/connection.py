@@ -24,23 +24,47 @@ import asyncpg
 
 from .dialect import _literalquery
 
-
 class PGConnection(asyncpg.Connection):
     async def execute(self, query: str, *args, timeout: float = None) -> str:
         """
-        Execute an SQLAlchemy command (or commands).
+        Overwrite execute function with dialect wedged.
 
         """
         # postgresql dialect wedged
-        literal_query = _literalquery(query)
+        if not isinstance(query, str):
+            query = _literalquery(query)
 
         self._check_open()
 
         if not args:
-            return await self._protocol.query(literal_query, timeout)
+            return await self._protocol.query(query, timeout)
 
-        _, status, _ = await self._execute(literal_query, args, 0, timeout, True)
+        _, status, _ = await self._execute(query, args, 0, timeout, True)
         return status.decode()
+
+    async def _execute(self, query, args, limit, timeout, return_status=False):
+        """
+        Overwrite _execute function with dialect wedged.
+
+        """
+        if not isinstance(query, str):
+            query = _literalquery(query)
+
+        with self._stmt_exclusive_section:
+            result, _ = await self.__execute(
+                query, args, limit, timeout, return_status=return_status)
+        return result
+
+    async def __execute(self, query, args, limit, timeout,
+                        return_status=False):
+        """
+        Double underscore prefix causes Python to rewrite the attribute name.
+
+        """
+        executor = lambda stmt, timeout: self._protocol.bind_execute(
+            stmt, args, '', limit, return_status, timeout)
+        timeout = self._protocol._get_timeout(timeout)
+        return await self._do_execute(query, executor, timeout)
 
 
 async def connect(dsn=None, *,
@@ -56,6 +80,10 @@ async def connect(dsn=None, *,
                   ssl=None,
                   connection_class=PGConnection,
                   server_settings=None):
+    """
+    Overwrite connect function with PGConnection class.
+
+    """
     return await asyncpg.connect(loop=loop, connection_class=connection_class,
         dsn=dsn, host=host, port=port, user=user, password=password, passfile=passfile,
         database=database, timeout=timeout, statement_cache_size=statement_cache_size,
