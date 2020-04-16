@@ -21,52 +21,34 @@
 # SOFTWARE.
 
 import pytest
-import apgsa
 
-from .model import users, addresses
+from apgsa import PG
+from sqlalchemy.engine import create_engine
 
-@pytest.fixture
-async def apgsa_conn():
-    """
-    Create an apgsa connection for each test case.
+from .model import metadata
 
-    """
-    try:
-        conn = await apgsa.connect(user='test_user', password='test_pass',
-                                    database='test_db', host='127.0.0.1')
-
-        yield conn
-    finally:
-        await conn.close()
+DSN = 'postgresql://test_user:test_pass@localhost/test_db'
 
 
 @pytest.fixture
-async def conn(apgsa_conn):
-    """
-    Setup and teardown postgres tables envrionment.
-
-    """
-    USERS = [
-        {'id': 1, 'name': 'jack', 'fullname': 'Jack Jones'},
-        {'id': 2, 'name': 'wendy', 'fullname': 'Wendy Williams'}
-    ]
-
-    ADDRESSES = [
-        {'id': 1, 'user_id': 1, 'email_address': 'jack@yahoo.com'},
-        {'id': 2, 'user_id': 1, 'email_address': 'jack@msn.com'},
-        {'id': 3, 'user_id': 2, 'email_address': 'www@www.org'},
-        {'id': 4, 'user_id': 2, 'email_address': 'wendy@aol.com'}
-    ]
-
+async def pg():
+    pg = PG(DSN, metadata)
     try:
-        # setup table users, addresses
-        ins_users = users.insert().values(USERS)
-        ins_addresses = addresses.insert().values(ADDRESSES)
-        await apgsa_conn.execute(ins_users)
-        await apgsa_conn.execute(ins_addresses)
-
-        yield apgsa_conn
+        pg.create_all()
+        await pg.init_pool()
+        yield pg
     finally:
-        # tearown tables
-        await apgsa_conn.execute(addresses.delete())
-        await apgsa_conn.execute(users.delete())
+        pg.drop_all()
+
+
+# @pytest.fixture
+# async def conn(pg):
+#     """This fixture creates table before each test function in this module and,
+#     drops it after, so that each test gets a clean table.
+#     """
+#     try:
+#         pool = await pg.init_pool()
+#         conn = await pool.acquire()
+#         yield conn
+#     finally:
+#         pool.release(conn)

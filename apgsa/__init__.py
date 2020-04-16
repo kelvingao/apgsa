@@ -22,6 +22,6 @@
 
 from .version import __version__, __version_info__
 
-from .connection import connect
+from .pg import PG
 
-__all__ = ('connect')
+__all__ = ('PG')
