@@ -25,6 +25,7 @@ from . import utils
 
 from sqlalchemy import MetaData
 from sqlalchemy import func
+from sqlalchemy.engine.url import URL
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 from sqlalchemy.sql.ddl import DDLElement
@@ -46,15 +47,9 @@ class PG:
 
     # __slot__ = ('_dsn', '_metadata', '_engine', '_pool')
 
-    def __init__(self, dsn: str, metadata: MetaData):
-        """
-        Bind metadata to sqlalchemy engine.
-
-        """
-
-        self._dsn = dsn
+    def __init__(self, metadata: MetaData = None):
         self._metadata = metadata
-        self._metadata.bind = create_engine(self._dsn)
+        self._pool = None
 
     def __repr__(self) -> str:
         return self._dsn
@@ -70,9 +65,9 @@ class PG:
             return self._pool
 
     # ---------------------------------------
-    async def init_pool(self):
+    async def init_pool(self, dsn):
         # connect to the pool
-        self._pool = await asyncpg.create_pool(self._dsn)
+        self._pool = await asyncpg.create_pool(dsn)
         return self
 
     async def close_pool(self):
@@ -86,13 +81,29 @@ class PG:
 
         await self._pool.close()
 
-    def connect(self):
+    def connect(
+            self, host: str = '127.0.0.1', db_name: str = '', db_user: str = '',
+            db_pass: str = '', timeout: float = 4):
         """
         After the connection is made the client is fully synchronized
         and ready to serve requests.
         This method is blocking.
         """
-        return utils.run(self.init_pool(), timeout=self.RequestTimeout)
+        if timeout:
+            self.RequestTimeout = timeout
+
+        params = {
+            'database': db_name,
+            'username': db_user,
+            'password': db_pass,
+            'host': host
+        }
+
+        self._dsn = str(URL('postgres', **params))
+        if self._metadata:
+            self._metadata.bind = create_engine(self._dsn)
+
+        return utils.run(self.init_pool(self._dsn), timeout=self.RequestTimeout)
 
     def execute_defaults(self, query):
         if isinstance(query, InsertObject):
@@ -183,11 +194,13 @@ class PG:
         Create tables.
 
         """
-        self._metadata.create_all()
+        if self._metadata:
+            self._metadata.create_all()
 
     def drop_all(self):
         """
         Drop tables.
 
         """
-        self._metadata.drop_all()
+        if self._metadata:
+            self._metadata.drop_all()
