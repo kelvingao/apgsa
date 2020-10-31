@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import asyncpg
+from . import utils
 
 from sqlalchemy import MetaData
 from sqlalchemy import func
@@ -43,7 +44,7 @@ class PG:
 
     _dialect = postgresql.dialect(paramstyle='pyformat')
 
-    __slot__ = ('_dsn', '_metadata', '_engine', '_pool')
+    # __slot__ = ('_dsn', '_metadata', '_engine', '_pool')
 
     def __init__(self, dsn: str, metadata: MetaData):
         """
@@ -84,6 +85,14 @@ class PG:
             return
 
         await self._pool.close()
+
+    def connect(self):
+        """
+        After the connection is made the client is fully synchronized
+        and ready to serve requests.
+        This method is blocking.
+        """
+        return utils.run(self.init_pool(), timeout=self.RequestTimeout)
 
     def execute_defaults(self, query):
         if isinstance(query, InsertObject):
