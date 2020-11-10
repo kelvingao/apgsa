@@ -16,7 +16,7 @@ setuptools.setup(
     description="A wrapper around asyncpg for use with sqlalchemy core",
     long_description=long_description,
     url="https://github.com/kelvingao/apgsa",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=["tests"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
