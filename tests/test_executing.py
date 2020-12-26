@@ -26,13 +26,13 @@ import apgsa
 from .model import users
 
 @pytest.mark.asyncio
-async def test_executing(conn):
-    """
-    INSERT a single row.
+async def test_executing(pool):
+    """INSERT a single row."""
 
-    """
-    ins = users.insert().values(name='kelvin', fullname='Kelvin Goh')
+    ins = users.insert().values([
+        {'name' : 'kelvin', 'fullname' : 'Kelvin Goh'}
+    ])
 
     # test a sample of the SQL postgres dialect construct produces
-    status = await conn.execute(ins)
+    status = await pool.execute(ins)
     assert status == 'INSERT 0 1'

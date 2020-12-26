@@ -19,3 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+import os
+
+port = os.getenv('POSTGRES_PORT', 5432)
+host = os.getenv('POSTGRES_HOST', 'localhost')
+username = os.getenv('POSTGRES_USER', 'postgres')
+password = os.getenv('POSTGRES_PASSWORD', 'password')
+database = os.getenv('POSTGRES_DB', 'postgres')
+
+DSN = f'postgresql://{username}:{password}@{host}:{port}/{database}'

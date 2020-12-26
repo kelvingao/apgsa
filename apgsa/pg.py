@@ -27,8 +27,13 @@ class PG:
 
     # __slot__ = ('_dsn', '_metadata', '_engine', '_pool')
 
-    def __init__(self, metadata: MetaData = None):
-        self._metadata = metadata
+    def __init__(self, dsn: str, metadata: MetaData = None):
+        self._dsn = dsn
+
+        if MetaData:
+            self._metadata = metadata
+            self._metadata.bind = create_engine(self._dsn)
+
         self._pool = None
 
     def __repr__(self) -> str:
@@ -45,9 +50,9 @@ class PG:
             return self._pool
 
     # ---------------------------------------
-    async def init_pool(self, dsn):
+    async def init_pool(self):
         # connect to the pool
-        self._pool = await asyncpg.create_pool(dsn)
+        self._pool = await asyncpg.create_pool(self._dsn)
         return self
 
     async def close_pool(self):
@@ -80,8 +85,8 @@ class PG:
         }
 
         self._dsn = str(URL('postgres', **params))
-        if self._metadata:
-            self._metadata.bind = create_engine(self._dsn)
+        # if self._metadata:
+        #     self._metadata.bind = create_engine(self._dsn)
 
         return utils.run(self.init_pool(self._dsn), timeout=self.RequestTimeout)
 
@@ -174,7 +179,10 @@ class PG:
         Create tables.
 
         """
-        if self._metadata:
+        if not self._metadata:
+            raise NotInitializedError('metadata needs to be initialized '
+                                      'before you can create tables.')
+        else:
             self._metadata.create_all()
 
     def drop_all(self):

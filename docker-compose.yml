@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  tests:
+    build: .
+    volumes:
+      - .:/repo
+    command:
+      pytest ./tests -s -vvv --log-level=DEBUG
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - PYTHONASYNCIODEBUG=1
+  postgres:
+    image: postgres:11
+    hostname: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password

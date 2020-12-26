@@ -1,2 +1,4 @@
 asyncpg
 sqlalchemy
+eventkit
+psycopg2
