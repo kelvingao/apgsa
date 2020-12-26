@@ -27,16 +27,17 @@ from sqlalchemy.engine import create_engine
 
 from .model import metadata
 
-DSN = 'postgresql://test_user:test_pass@localhost/test_db'
+# DSN = 'postgresql://postgres:password@postgres/postgres'
+from . import DSN
 
 
 @pytest.fixture
-async def pg():
+async def pool():
     pg = PG(DSN, metadata)
     try:
         pg.create_all()
-        await pg.init_pool()
-        yield pg
+        pool = await pg.init_pool()
+        yield pool
     finally:
         pg.drop_all()
 
