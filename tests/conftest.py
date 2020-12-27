@@ -26,8 +26,6 @@ from apgsa import PG
 from sqlalchemy.engine import create_engine
 
 from .model import metadata
-
-# DSN = 'postgresql://postgres:password@postgres/postgres'
 from . import DSN
 
 
@@ -40,16 +38,3 @@ async def pool():
         yield pool
     finally:
         pg.drop_all()
-
-
-# @pytest.fixture
-# async def conn(pg):
-#     """This fixture creates table before each test function in this module and,
-#     drops it after, so that each test gets a clean table.
-#     """
-#     try:
-#         pool = await pg.init_pool()
-#         conn = await pool.acquire()
-#         yield conn
-#     finally:
-#         pool.release(conn)

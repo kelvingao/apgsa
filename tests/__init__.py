@@ -24,8 +24,8 @@ import os
 
 port = os.getenv('POSTGRES_PORT', 5432)
 host = os.getenv('POSTGRES_HOST', 'localhost')
-username = os.getenv('POSTGRES_USER', 'postgres')
-password = os.getenv('POSTGRES_PASSWORD', 'password')
-database = os.getenv('POSTGRES_DB', 'postgres')
+username = os.getenv('POSTGRES_USER', 'test_user')
+password = os.getenv('POSTGRES_PASSWORD', 'test_pass')
+database = os.getenv('POSTGRES_DB', 'test_db')
 
 DSN = f'postgresql://{username}:{password}@{host}:{port}/{database}'
